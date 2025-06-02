@@ -37,3 +37,7 @@ ul {
   color: white;
   padding: 0;
 }
+
+p, label {
+  color: white;
+}

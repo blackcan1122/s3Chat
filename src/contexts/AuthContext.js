@@ -1,15 +1,16 @@
 // AuthContext.js
 import { createContext, useContext, useState } from "react";
-import {GetBackendContext} from './BackendContext'
+import {useBackend} from './BackendContext'
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const { InitializeBackend } = useBackend();
+
 
   const login = (username, password) => {
-    const { InitializeBackend } = GetBackendContext();
   
     setUser(username);
     setPassword(password);
