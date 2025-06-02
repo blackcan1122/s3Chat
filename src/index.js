@@ -1,14 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import './style/index.css';
+import App from './mainsites/App.js';
+import ChatApp from './mainsites/ChatApp.js';
 import reportWebVitals from './reportWebVitals';
+import {AuthProvider} from './contexts/AuthContext.js'
+import {BackendProvider} from './contexts/BackendContext.js'
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+        <AuthProvider>
+            <BackendProvider>
+                <App />
+            </BackendProvider>
+        </AuthProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

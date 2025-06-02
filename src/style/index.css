@@ -5,9 +5,35 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(40, 40, 71);
+}
+
+#root{
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+input{
+  background-color: darkgray;
+}
+
+.ChatWindow
+{
+  width: 10em;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+
+}
+
+ul {
+  list-style: none;
+  color: white;
+  padding: 0;
 }
