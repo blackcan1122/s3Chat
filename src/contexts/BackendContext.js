@@ -23,7 +23,7 @@ export function BackendProvider({children}){
     function InitializeBackendWithSession(Username ,SessionID){
         console.log("We Initialize via Session")
         return new Promise((resolve, reject) => {
-        const ws = new WebSocket("ws://localhost:8000/ws/chat");
+        const ws = new WebSocket(process.env.REACT_APP_BACKEND_URL);
         ws.onopen = () => {
             ws.send(JSON.stringify({username: Username, session_id: SessionID}));
         };
@@ -59,7 +59,7 @@ export function BackendProvider({children}){
     {
         console.log("We Initialize via Login")
         return new Promise((resolve, reject) => {
-        const ws = new WebSocket("ws://localhost:8000/ws/chat");
+        const ws = new WebSocket(process.env.REACT_APP_BACKEND_URL);
         ws.onopen = () => {
             ws.send(JSON.stringify({ username: Name, password: Passwort }));
         };
