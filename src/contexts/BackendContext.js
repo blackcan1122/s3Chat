@@ -16,9 +16,12 @@ export function BackendProvider({children}){
 
     const BackendConnection = useRef(null);
     const [connected, setConnected] = useState(false);
+    const [error, setError] = useState("");
+
 
 
     function InitializeBackendWithSession(Username ,SessionID){
+        console.log("We Initialize via Session")
         return new Promise((resolve, reject) => {
         const ws = new WebSocket("ws://localhost:8000/ws/chat");
         ws.onopen = () => {
@@ -54,6 +57,7 @@ export function BackendProvider({children}){
 
     function InitializeBackend(Name, Passwort, SaveLogin)
     {
+        console.log("We Initialize via Login")
         return new Promise((resolve, reject) => {
         const ws = new WebSocket("ws://localhost:8000/ws/chat");
         ws.onopen = () => {
@@ -91,7 +95,13 @@ export function BackendProvider({children}){
 
       if (username && sessionid && !connected && keepLogin === "true") {
         console.log(`trying to login with session id: ${sessionid}`);
-        InitializeBackendWithSession(username, sessionid);
+        try{
+          InitializeBackendWithSession(username, sessionid);
+        } 
+        catch(err){
+          setError(err.message);
+        }
+
       }
     }, [connected]);
 

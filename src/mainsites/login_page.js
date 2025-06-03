@@ -9,9 +9,15 @@ function LoginPage() {
     const [password, setPassword] = useState("");
     const [savelogin, setSavelogin] = useState(false);
 
-    function submitHandler(event) {
+    async  function submitHandler(event) {
         event.preventDefault();
-        InitializeBackend(username, password, savelogin);
+        try{
+           await InitializeBackend(username, password, savelogin);
+        }
+        catch(err){
+            console.log(err.message);
+        }
+        
     }
 
     // Setting username depending on cookie
@@ -20,32 +26,49 @@ function LoginPage() {
         if (cookieUsername) setUsername(cookieUsername);
     }, []);
 
-    return (
-        <>
-            <form onSubmit={submitHandler}>
-                <p>Username</p>
-                <input 
-                    value={username} 
-                    onChange={e => setUsername(e.target.value)} 
-                />
-                <p>Password</p>
-                <input 
-                    type="password"
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                />
-                <label>
-                    <input 
-                        type="checkbox"
-                        checked={savelogin} 
-                        onChange={e => setSavelogin(e.target.checked)} 
-                    />
-                    Keep me logged in
-                </label>
-                <input type="submit" value="Login"/>
-            </form>
-        </>
-    );
+return (
+  <>
+    <form onSubmit={submitHandler}>
+      {/* USERNAME */}
+      <div className="form-group">
+        <label htmlFor="username">Username</label>
+        <input
+          id="username"
+          placeholder="Username"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+        />
+      </div>
+
+      {/* PASSWORD */}
+      <div className="form-group">
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+      </div>
+
+      {/* KEEP ME LOGGED IN */}
+      <div className="checkbox-row">
+        <input
+          id="keep"
+          type="checkbox"
+          checked={savelogin}
+          onChange={e => setSavelogin(e.target.checked)}
+        />
+        <label htmlFor="keep">Keep me logged in</label>
+      </div>
+
+      {/* SUBMIT */}
+      <button type="submit">Login</button>
+    </form>
+  </>
+);
+
 }
 
 export default LoginPage;

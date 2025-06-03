@@ -14,7 +14,12 @@ export function AuthProvider({ children }) {
   
     setUser(username);
     setPassword(password);
-    InitializeBackend(username, password);
+    try{
+      InitializeBackend(username, password);
+    }
+    catch(err){
+      console.log(err.message);
+    }
   };
 
   const logout = () => setUser(null);
