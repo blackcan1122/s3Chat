@@ -22,8 +22,10 @@ export function BackendProvider({children}){
 
     function InitializeBackendWithSession(Username ,SessionID){
         console.log("We Initialize via Session")
+        console.log(process.env.REACT_APP_BACKEND_URL)
+
         return new Promise((resolve, reject) => {
-        const ws = new WebSocket(process.env.REACT_APP_BACKEND_URL);
+        const ws = new WebSocket("ws://localhost:8000/ws/chat");
         ws.onopen = () => {
             ws.send(JSON.stringify({username: Username, session_id: SessionID}));
         };
@@ -57,7 +59,10 @@ export function BackendProvider({children}){
 
     function InitializeBackend(Name, Passwort, SaveLogin)
     {
-        console.log("We Initialize via Login")
+        const env_address = process.env.REACT_APP_BACKEND_URL;
+        console.log(`${env_address}`);
+        console.log("We Initialize via Login");
+        
         return new Promise((resolve, reject) => {
         const ws = new WebSocket(process.env.REACT_APP_BACKEND_URL);
         ws.onopen = () => {
