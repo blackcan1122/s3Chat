@@ -98,14 +98,18 @@ export function BackendProvider({children}){
       console.log("Lets see");
       console.log(`username: ${username}, sessionid: ${sessionid}, connected: ${connected}, keeplogin: ${keepLogin}`);
 
-      if (username && sessionid && !connected && keepLogin === "true") {
-        console.log(`trying to login with session id: ${sessionid}`);
-        try{
-          InitializeBackendWithSession(username, sessionid);
+      const autoLogin = async () =>{
+         try{
+          await InitializeBackendWithSession(username, sessionid);
         } 
         catch(err){
           setError(err.message);
         }
+      }
+
+      if (username && sessionid && !connected && keepLogin === "true") {
+        console.log(`trying to login with session id: ${sessionid}`);
+        autoLogin();
 
       }
     }, [connected]);

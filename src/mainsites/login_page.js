@@ -8,24 +8,37 @@ function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [saveLogin, setSaveLogin] = useState(false);
-    const [isRegister, setIsRegister] = useState(false);   // NEW
+    const [isRegister, setIsRegister] = useState(false);
+    const [status, setStatus] = useState("");
 
 
     async  function submitHandler(event) {
         event.preventDefault();
+        if (username.trim().length <= 2 || password.trim().length <= 2){
+          setStatus("Username or Password too Short\n Choose a Name and Password with atleast 3 Chars");
+          return
+        }
         try {
           if (isRegister) {
-            await fetch("/add_user", {
+            const response = await fetch("/add_user", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
             credentials: "omit"
             });
-            console.log("register flow");
+            if (response.ok)
+            {
+              setStatus("Registration succeed\n Approval from Admin required");
+            }
           } 
           else {
-            await InitializeBackend(username, password, saveLogin);
-            console.log("login flow");
+            try{
+              await InitializeBackend(username, password, saveLogin);
+              console.log("login flow");
+            }
+            catch{
+              setStatus("Could not Connect to Server\n Please try again Later");
+            }
           }
         }
         catch (err) {
@@ -38,6 +51,11 @@ function LoginPage() {
         const cookieUsername = getCookie('username');
         if (cookieUsername) setUsername(cookieUsername);
     }, []);
+
+    // Displaying a error message
+    useEffect(() =>{
+
+    }, [status]);
 
   return (
     <>
@@ -89,6 +107,12 @@ function LoginPage() {
             onChange={(e) => setIsRegister(e.target.checked)}
           />
           <label htmlFor="registerToggle">I need an account</label>
+        </div>
+
+        <div className='status-display'>
+          {status.split('\n').map((line, idx) => (
+            <span key={idx}>{line}<br /></span>
+          ))}
         </div>
 
         {/* SUBMIT */}
