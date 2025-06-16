@@ -8,14 +8,25 @@ export default function ChatApp() {
   const [messages, setMessages] = useState([]);
   const [text, setText]       = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
+  const originalTitle = useRef(document.title);
+  const blinkInterval = useRef(null);
 
   const taRef = useRef(null);
+  const chatWindowRef = useRef(null);
 
-    const resizeTextarea = () => {
+
+  const resizeTextarea = () => {
     if (!taRef.current) return;
     taRef.current.style.height = "auto";
     taRef.current.style.height = `${taRef.current.scrollHeight}px`;
+  };
+
+  const scrollToBottom = () => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
   };
 
   useEffect(resizeTextarea, [text]);
@@ -26,15 +37,55 @@ export default function ChatApp() {
   useEffect(() => {
     if (!connected) return;
 
-    const ws       = BackendConnection.current;
-    const handler  = (evt) =>
-      setMessages(prev => [...prev, evt.data]);
+    const ws = BackendConnection.current;
+    const handler = (evt) => {
+      setMessages(prev => {
+        if (document.hidden) {
+          setUnreadCount(prevCount => prevCount + 1);
+        }
+        return [...prev, evt.data];
+      });
+    };
 
     ws.addEventListener("message", handler);
 
     return () => ws.removeEventListener("message", handler);
   }, [connected, BackendConnection]);
 
+    useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        setUnreadCount(0);
+        document.title = originalTitle.current;
+        if (blinkInterval.current) {
+          clearInterval(blinkInterval.current);
+          blinkInterval.current = null;
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+
+  useEffect(() => {
+    if (unreadCount > 0 && document.hidden) {
+      if (!blinkInterval.current) {
+        blinkInterval.current = setInterval(() => {
+          document.title = document.title === originalTitle.current 
+            ? `(${unreadCount}) New messages!` 
+            : originalTitle.current;
+        }, 1000);
+      } else {
+        document.title = `(${unreadCount}) New messages!`;
+      }
+    }
+  }, [unreadCount]);
 
   const send = () => {
     const ws = BackendConnection.current;
@@ -60,7 +111,7 @@ return (
       <Friendlist />
 
       {/* Chat history */}
-      <div className="ChatWindow">
+      <div className="ChatWindow" ref={chatWindowRef}>
         <ul>
           {messages.map((m, i) => (
             <li key={i}>{m}</li>

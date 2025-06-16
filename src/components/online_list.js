@@ -1,37 +1,54 @@
 import React, {useState, useEffect, useRef} from "react";
 import { useBackend } from "../contexts/BackendContext";
+import { useUserData } from "../contexts/userContext";
 
 
 
 
 function Friendlist(){
     const { BackendConnection } = useBackend();
-    const [userData, setUserData] = useState([]);
+    const [userList, setUserList] = useState([]);
     const [error, setError] = useState(null);
     const [initialized, setInitialized] = useState(false)
+    const {userData} = useUserData();
 
     useEffect(() => {
         const fetchFriends = async () => {
-            try {
-                console.log('Try to get friends');
-                
-                const response = await fetch('/api/users', {
+            try {              
+                if (userData.role == true) {
+                    const response = await fetch('/api/all_users', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
                     },
                 });
-                
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('Parsed data:', data);
-                setUserData(data);
+                setUserList(data);
+
+                }
+                else{
+                    const response = await fetch('/api/users', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                setUserList(data);
+
+                }
+               
                 
             } 
             catch (err) {
@@ -57,16 +74,29 @@ function Friendlist(){
 
     if (error) return <div>Error: {error}</div>;
 
+    const approval_state = (friend) => {
+        if(userData.role == true){
+            return(
+                <>
+                <span>{String(friend.is_approved)}</span>
+                </>
+            )
+        }
+    }
+
     return (
         <div className="FriendList">
             <h3>Online Users</h3>
             <ul>
-                {userData.map((friend, index) => (
+                {userList.map((friend, index) => (
                     <li key={index}>
-                        <span className="username">{friend.username} - </span>
-                        <span className={`status ${friend.is_online ? 'online' : 'offline'}`}>
-                            {friend.is_online ? "Online" : "Offline"}
-                        </span>
+                        <div className="List-Entry">
+                            <span className="username">{friend.username} - </span>
+                            <span className={`status ${friend.is_online ? 'online' : 'offline'}`}>
+                                {friend.is_online ? "Online" : "Offline"}
+                            </span>
+                            - {approval_state(friend)}
+                        </div>
                     </li>
                 ))}
             </ul>

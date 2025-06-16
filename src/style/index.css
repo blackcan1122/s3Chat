@@ -259,6 +259,28 @@ a:hover { opacity:0.85; text-decoration:underline; }
   padding: 30px 0px 0px 0px;
 }
 
+.impressum-link{
+  color:var(--accent);
+  position: absolute;
+  bottom: 0px;
+  margin-top: auto;
+}
+
+.impressum-block strong{
+  color:var(--accent)
+}
+
+.List-Entry {
+    display: block;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 4px var(--bg);
+    margin: 10px 0 10px 0;
+}
+.List-Entry:hover{
+    box-shadow: 0 2px 4px var(--accent-hover);
+
+}
+
 /* friend list as a fixed drawer on narrow viewports */
 @media (max-width:767px){
   .SidebarToggle{ display:flex; }
@@ -276,6 +298,8 @@ a:hover { opacity:0.85; text-decoration:underline; }
     z-index:1200;
   }
 
+
+
   /* when clicked we fade it in */
   .ChatWithSidebar.show-sidebar .FriendList{
     transform:translateX(0);
@@ -288,7 +312,7 @@ a:hover { opacity:0.85; text-decoration:underline; }
     position:absolute;
     right:100%;
     margin-right:var(--gap);
-    width:180px;
+    width:250px;
     transform:none;           /* always visible */
   }
   .SidebarToggle{ display:none; }

@@ -5,14 +5,17 @@ import App from './mainsites/App.js';
 import reportWebVitals from './reportWebVitals';
 import {AuthProvider} from './contexts/AuthContext.js'
 import {BackendProvider} from './contexts/BackendContext.js'
+import {UserProvider} from './contexts/userContext.js'
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
+        <UserProvider>
             <BackendProvider>
                         <AuthProvider>
                                 <App />
                         </AuthProvider>
             </BackendProvider>
+        </UserProvider>
 
 );
 

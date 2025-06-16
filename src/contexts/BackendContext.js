@@ -1,4 +1,5 @@
 import React, {useState, useEffect, createContext, useContext, useRef} from 'react';
+import { useUserData } from './userContext';
 
 
 function getCookie(name) {
@@ -17,15 +18,14 @@ export function BackendProvider({children}){
     const BackendConnection = useRef(null);
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState("");
-
-
+    const { SetupUser } = useUserData();
+ 
 
     function InitializeBackendWithSession(Username ,SessionID){
         console.log("We Initialize via Session")
-        console.log(process.env.REACT_APP_BACKEND_URL)
 
         return new Promise((resolve, reject) => {
-        const ws = new WebSocket("ws://localhost:8000/ws/chat");
+        const ws = new WebSocket(process.env.REACT_APP_BACKEND_URL);
         ws.onopen = () => {
             ws.send(JSON.stringify({username: Username, session_id: SessionID}));
         };
@@ -60,11 +60,10 @@ export function BackendProvider({children}){
     function InitializeBackend(Name, Passwort, SaveLogin)
     {
         const env_address = process.env.REACT_APP_BACKEND_URL;
-        console.log(`${env_address}`);
         console.log("We Initialize via Login");
         
         return new Promise((resolve, reject) => {
-        const ws = new WebSocket(process.env.REACT_APP_BACKEND_URL);
+        const ws = new WebSocket(env_address);
         ws.onopen = () => {
             ws.send(JSON.stringify({ username: Name, password: Passwort }));
         };
@@ -74,6 +73,8 @@ export function BackendProvider({children}){
                 setConnected(true);
                 BackendConnection.current = ws;
                 ws.onmessage = null;
+                const role = payload.role;
+                SetupUser(Name, role);
                 document.cookie = `username=${Name}; path=/; max-age=${60 * 60}`;
                 document.cookie = `sessionId=${payload.session_id}; path=/; max-age=${60 * 60}`;
                 document.cookie = `AutoLogin=${SaveLogin}; path=/; max-age=${60 * 60}`;
@@ -95,7 +96,6 @@ export function BackendProvider({children}){
       const username = getCookie('username');
       const sessionid = getCookie('sessionId');
       const keepLogin = getCookie('AutoLogin');
-      console.log("Lets see");
       console.log(`username: ${username}, sessionid: ${sessionid}, connected: ${connected}, keeplogin: ${keepLogin}`);
 
       const autoLogin = async () =>{
@@ -108,7 +108,7 @@ export function BackendProvider({children}){
       }
 
       if (username && sessionid && !connected && keepLogin === "true") {
-        console.log(`trying to login with session id: ${sessionid}`);
+        console.log(`trying to login with session id`);
         autoLogin();
 
       }

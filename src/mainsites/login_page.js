@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useBackend } from '../contexts/BackendContext';
+import { UserProvider } from '../contexts/userContext';
 import getCookie from "../contexts/BackendContext";
 
 
@@ -11,7 +12,6 @@ function LoginPage() {
     const [isRegister, setIsRegister] = useState(false);
     const [status, setStatus] = useState("");
 
-
     async  function submitHandler(event) {
         event.preventDefault();
         if (username.trim().length <= 2 || password.trim().length <= 2){
@@ -19,6 +19,7 @@ function LoginPage() {
           return
         }
         try {
+          
           if (isRegister) {
             const response = await fetch("/add_user", {
             method: "POST",
@@ -34,10 +35,9 @@ function LoginPage() {
           else {
             try{
               await InitializeBackend(username, password, saveLogin);
-              console.log("login flow");
             }
-            catch{
-              setStatus("Could not Connect to Server\n Please try again Later");
+            catch (err){
+              setStatus(`${err}`);
             }
           }
         }
