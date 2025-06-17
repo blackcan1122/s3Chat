@@ -21,12 +21,12 @@
 
 body::before{
   content:"";
-  position:fixed;          /* sticks to the viewport */
-  inset:0;                 /* shorthand for top/right/bottom/left:0 */
+  position:fixed;
+  inset:0;
   background:url("../assets/imgs/logo.png") center 30% / 80vmin no-repeat;
-  opacity:0.07;            /* “half-transparent” logo */
-  pointer-events:none;     /* clicks pass through */
-  z-index:-1;              /* behind everything */
+  opacity:0.07;
+  pointer-events:none;
+  z-index:-1;
   transform: rotate(15deg);
 }
 
@@ -51,19 +51,18 @@ body {
 /* ─── keep chat centred, dock sidebar on its left ─────────────────────────── */
 
 .ChatWithSidebar{
-  position: relative;          /* establishes the containing block           */
-  width: var(--chat-width);    /* same clamp you already use for the chat    */
-  margin-inline: auto;         /* centres the whole block on the page        */
+  position: relative;
+  width: var(--chat-width);
+  margin-inline: auto;
 }
 
-/* pull the friends list out of normal flow so it no longer steals width */
 .ChatWithSidebar > .FriendList{
   position: absolute;
-  right: 100%;                 /* place its right edge flush with the chat   */
-  margin-right: var(--gap);    /* little breathing room                      */
-  width: 180px;                /* or whatever works for you                  */
+  right: 100%;                 
+  margin-right: var(--gap);
+  width: 180px;
 
-  /* purely cosmetic – borrow your existing tokens so it fits the theme */
+
   background: var(--bg-secondary);
   border-radius: var(--radius);
   padding: var(--gap);
@@ -75,12 +74,13 @@ body {
 
 /* ================= Chat Components ================ */
 .ChatWindow {
+  position: fixed;
   width:var(--chat-width);
   max-height:60vh;
   background:var(--bg-secondary);
   border-radius:var(--radius);
   padding:var(--gap);
-  overflow-y:auto;            /* 🔄 restored scroll */
+  overflow-y:auto; 
   box-shadow:0 4px 20px rgba(0,0,0,0.35);
   display:flex;
   flex-direction:column;
@@ -136,11 +136,11 @@ body {
 .input-row textarea {
   flex:1 1 auto;
   margin-bottom:0;
-  min-height:48px;          /* allow growth */
-  max-height:200px;         /* cap height */
+  min-height:48px;
+  max-height:200px;
   line-height:1.4;
-  resize:none;              /* auto-grow via JS */
-  overflow-y:hidden;        /* hide inner scroll */
+  resize:none;
+  overflow-y:hidden;
 }
 
 .footer-buttons { display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; }
@@ -251,7 +251,6 @@ a:hover { opacity:0.85; text-decoration:underline; }
 .SidebarToggle span::before{ position:absolute; top:-6px; }
 .SidebarToggle span::after { position:absolute; top: 6px; }
 
-/* base styles for the wrapper we already created */
 .ChatWithSidebar{
   position:relative;
   width:var(--chat-width);
@@ -261,7 +260,7 @@ a:hover { opacity:0.85; text-decoration:underline; }
 
 .impressum-link{
   color:var(--accent);
-  position: absolute;
+  position: fixed;
   bottom: 0px;
   margin-top: auto;
 }
@@ -306,14 +305,26 @@ a:hover { opacity:0.85; text-decoration:underline; }
   }
 }
 
-/* desktop/tablet keeps your earlier absolute-sidebar behaviour */
+.Admin-Button{
+  top: 0px;
+  right: 0px;
+  padding: 5px;
+  margin: 2px auto;
+  background: var(--accent);
+  border-radius: var(--radius);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* show sidebar on larger screens */
 @media (min-width:768px){
   .ChatWithSidebar .FriendList{
     position:absolute;
     right:100%;
     margin-right:var(--gap);
     width:250px;
-    transform:none;           /* always visible */
+    transform:none;
   }
   .SidebarToggle{ display:none; }
 }

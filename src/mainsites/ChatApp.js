@@ -3,12 +3,14 @@ import { useEffect, useState, useRef } from "react";
 import { useBackend } from "../contexts/BackendContext";
 import getCookie from "../contexts/BackendContext";
 import Friendlist from "../components/online_list";
+import { useUserData } from "../contexts/userContext";
 
 export default function ChatApp() {
   const [messages, setMessages] = useState([]);
   const [text, setText]       = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const {userData, UpdateTime} = useUserData();
 
   const originalTitle = useRef(document.title);
   const blinkInterval = useRef(null);
@@ -87,9 +89,26 @@ export default function ChatApp() {
     }
   }, [unreadCount]);
 
+
+useEffect(() => {
+  const AutoLogOutTimer = setInterval(() => {
+    if (connected) {
+      console.log("Checking for inactivity...");
+      let time = userData.last_message_sent - Date.now() - 60 * 1000;
+      if (userData.last_message_sent < Date.now() - 60 * 60 * 1000) {
+        console.log("Auto-logout due to inactivity");
+        DeinitializeBackend();
+      }
+    }
+  }, 60 * 1000);
+
+  return () => clearInterval(AutoLogOutTimer);
+}, [userData.last_message_sent, connected]);
+
   const send = () => {
     const ws = BackendConnection.current;
     if (ws?.readyState === WebSocket.OPEN && text.trim() !== "") {
+      UpdateTime(Date.now());
       ws.send(text);
       setText("");
     }
