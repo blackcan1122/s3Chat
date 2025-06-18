@@ -23,7 +23,7 @@
 
 ## Bug Fixes
 
-- [] Fix update of Online List when approving or Rejecting
-- [] Fix Auto Logout Timer
+- [ ] Fix update of Online List when approving or Rejecting
+- [ ] Fix Auto Logout Timer
 
 ---
