@@ -21,4 +21,9 @@
 - [ ] Rename context variables for clarity (e.g., avoid naming a backend context as AuthContext).
 - [ ] Use environment variables for backend URLs instead of hardcoding them.
 
+## Bug Fixes
+
+- [] Fix update of Online List when approving or Rejecting
+- [] Fix Auto Logout Timer
+
 ---
