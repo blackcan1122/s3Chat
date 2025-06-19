@@ -14,7 +14,8 @@ function SetupUser(name, role){
     setUserData(prev => ({
         ...prev,
         name,
-        role
+        role,
+        last_message_sent: Date.now()
     }));
 }
 

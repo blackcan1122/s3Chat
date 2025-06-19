@@ -72,6 +72,13 @@ body {
   list-style: none;
 }
 
+.FriendList .online {
+  color: rgb(0, 255, 0);
+}
+.FriendList .offline {
+  color: red;
+}
+
 /* ================= Chat Components ================ */
 .ChatWindow {
   position: fixed;

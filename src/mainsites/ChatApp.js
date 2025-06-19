@@ -41,12 +41,59 @@ export default function ChatApp() {
 
     const ws = BackendConnection.current;
     const handler = (evt) => {
-      setMessages(prev => {
-        if (document.hidden) {
-          setUnreadCount(prevCount => prevCount + 1);
+      /*
+      Message Example:
+      {"type": "message",
+       "data": "sdfsdf",
+       "username": "Blackcan"}
+
+
+      Backend Response:
+      {type: "cmd",
+       data: "logout"}
+
+
+      */
+      console.log(`Received message: ${evt.data}`);
+
+      let msg;
+      try {
+        msg = JSON.parse(evt.data);
+      } catch (e) {
+        console.error("Failed to parse message:", evt.data);
+      return;
+      }
+
+      if (msg.type == "message") {
+        let formattedMessage = `${msg.username}: ${msg.data}`;
+        setMessages(prev => {
+          if (document.hidden) {
+            setUnreadCount(prevCount => prevCount + 1);
+          }
+          return [...prev, formattedMessage];
+        });
+      }
+      else if (msg.type == "cmd") {
+        console.log("Command received:", msg.data);
+        if (msg.data === "rejected") {
+          alert("You have been kicked from the chat.");
+          DeinitializeBackend();
+          return;
         }
-        return [...prev, evt.data];
-      });
+      }
+
+      else if (msg.type == "cmd") {
+        console.log("Command received:", msg.data);
+        if (msg.data === "logout") {
+          alert("You have been logged out.");
+          DeinitializeBackend();
+          return;
+        }
+      }
+
+      else {
+        console.error("Unknown message type:", evt.type);
+      }
     };
 
     ws.addEventListener("message", handler);

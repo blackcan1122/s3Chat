@@ -42,6 +42,9 @@ export function BackendProvider({children}){
                 reject(new Error("Invalid credentials"));
             }
         };
+        ws.onclose = () => {
+            setConnected(false);
+        };
         ws.onerror = (err) => {
             reject(new Error("WebSocket error"));
         };
