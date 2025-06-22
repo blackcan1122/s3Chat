@@ -6,6 +6,7 @@
   --bg: #1e1e2f;
   --bg-secondary: #2a2a40;
   --accent: #d47100;
+  --dim-accent: #864800;
   --accent-hover: #d4a200fb;
   --text-primary: #f5f5f7;
   --text-secondary: #b0b0c3;
@@ -31,7 +32,7 @@ body::before{
 }
 
 body {
-  font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-family: monospace;
   background:var(--bg);
   color:var(--text-primary);
   line-height:1.6;
@@ -58,7 +59,7 @@ body {
 
 .ChatWithSidebar > .FriendList{
   position: absolute;
-  right: 100%;                 
+  right: 100%;
   margin-right: var(--gap);
   width: 180px;
 
@@ -87,7 +88,7 @@ body {
   background:var(--bg-secondary);
   border-radius:var(--radius);
   padding:var(--gap);
-  overflow-y:auto; 
+  overflow-y:auto;
   box-shadow:0 4px 20px rgba(0,0,0,0.35);
   display:flex;
   flex-direction:column;
@@ -150,18 +151,38 @@ body {
   overflow-y:hidden;
 }
 
-.footer-buttons { display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; }
+.footer-buttons {
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  width: var(--chat-width);
+  margin-top: -20px;
+}
+
+.footer-buttons button{
+  padding: 0;
+  height: auto;
+  border-radius: 10%;
+  margin-right: 20px;
+  max-width: fit-content;
+}
+
 
 /* ================= Form Elements ================ */
 input,textarea,select {
   width:100%;
   padding:0.75rem 1rem;
-  border:none;
+  border: 1px solid var(--dim-accent);
   border-radius:var(--radius);
   background:rgba(255,255,255,0.08);
   color:var(--text-primary);
   margin-bottom:1.25rem;
   transition:background var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+  border: 1px solid var(--accent-hover);
 }
 
 input::placeholder, textarea::placeholder { color:var(--placeholder); }
@@ -199,6 +220,7 @@ label { font-size:0.95rem; color:var(--text-primary); margin-bottom:0.25rem; }
 
 /* ================= Buttons ================ */
 button {
+  font-family: monospace;
   display:inline-flex; align-items:center; justify-content:center;
   cursor:pointer;
   padding:0.75rem 1.5rem;
@@ -277,14 +299,14 @@ a:hover { opacity:0.85; text-decoration:underline; }
 }
 
 .List-Entry {
-    display: block;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 4px var(--bg);
-    margin: 10px 0 10px 0;
+  display: block;
+  border-radius: var(--radius);
+  box-shadow: 0 0 5px 2px var(--bg);
+  margin: 10px 0 10px 0;
+  padding: 10px
 }
-.List-Entry:hover{
-    box-shadow: 0 2px 4px var(--accent-hover);
-
+.List-Entry:hover {
+  box-shadow: 0 0 5px 0px var(--accent-hover);
 }
 
 /* friend list as a fixed drawer on narrow viewports */
@@ -316,12 +338,78 @@ a:hover { opacity:0.85; text-decoration:underline; }
   top: 0px;
   right: 0px;
   padding: 5px;
-  margin: 2px auto;
   background: var(--accent);
   border-radius: var(--radius);
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
+}
+
+.emoji-drawer {
+  width: var(--chat-width);
+  position: fixed;
+  bottom: 7rem;
+  z-index: 1000;
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.emoji-list {
+  display: block;
+  padding: 10px;
+  margin: 0 0 20px 0;
+}
+
+.emoji-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.emoji-drawer-header > * {
+  padding: 2px;
+  border-radius: 6px;
+  margin: 0px 10px;
+}
+
+.emoji-drawer .emoji-item {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
+
+.emoji-drawer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: -1;
+}
+
+.Bubble {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 0 3px;
+  background-color: #ccc;
+  cursor: pointer;
+}
+
+.Bubble.active {
+  background-color: var(--accent);
 }
 
 /* show sidebar on larger screens */

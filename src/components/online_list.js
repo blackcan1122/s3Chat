@@ -78,7 +78,7 @@ function Friendlist(){
         if (userData.role === true) {
             return (
                 <>
-                    <span>{String(friend.is_approved)}</span>
+                    <span> - {friend.is_approved ? "✅" : "❌"}</span>
                     <br />
                     {!friend.is_approved && (
                         <button
@@ -168,7 +168,7 @@ function Friendlist(){
                             <span className={`status ${friend.is_online ? 'online' : 'offline'}`}>
                                 {friend.is_online ? "Online" : "Offline"}
                             </span>
-                            - {approval_state(friend)}
+                            {approval_state(friend)}
                         </div>
                     </li>
                 ))}

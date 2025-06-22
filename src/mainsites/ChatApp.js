@@ -4,6 +4,7 @@ import { useBackend } from "../contexts/BackendContext";
 import getCookie from "../contexts/BackendContext";
 import Friendlist from "../components/online_list";
 import { useUserData } from "../contexts/userContext";
+import EmojiDrawer from "../components/emoji_drawer";
 
 export default function ChatApp() {
   const [messages, setMessages] = useState([]);
@@ -11,6 +12,15 @@ export default function ChatApp() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const {userData, UpdateTime} = useUserData();
+  const [isEmojiDrawerOpen, setIsEmojiDrawerOpen] = useState(false);
+  const allEmojisRef = useRef([]);
+
+
+  // Emojis
+
+  const [emojiList, setEmojiList] = useState([]);
+  const [page, setPage] = useState(0);
+  const pageSize = 57;
 
   const originalTitle = useRef(document.title);
   const blinkInterval = useRef(null);
@@ -137,20 +147,93 @@ export default function ChatApp() {
   }, [unreadCount]);
 
 
-useEffect(() => {
-  const AutoLogOutTimer = setInterval(() => {
-    if (connected) {
-      console.log("Checking for inactivity...");
-      let time = userData.last_message_sent - Date.now() - 60 * 1000;
-      if (userData.last_message_sent < Date.now() - 60 * 60 * 1000) {
-        console.log("Auto-logout due to inactivity");
-        DeinitializeBackend();
+  useEffect(() => {
+    const AutoLogOutTimer = setInterval(() => {
+      if (connected) {
+        console.log("Checking for inactivity...");
+        let time = userData.last_message_sent - Date.now() - 60 * 1000;
+        if (userData.last_message_sent < Date.now() - 60 * 60 * 1000) {
+          console.log("Auto-logout due to inactivity");
+          DeinitializeBackend();
+        }
       }
-    }
-  }, 60 * 1000);
+    }, 60 * 1000);
+    return () => clearInterval(AutoLogOutTimer);
+  }, [userData.last_message_sent, connected]);
 
-  return () => clearInterval(AutoLogOutTimer);
-}, [userData.last_message_sent, connected]);
+
+
+  useEffect(() => {
+    const fetchEmojis = async () => {
+      try {
+        const response = await fetch(`/assets/json/emojiraw.json`);
+        const data = await response.json();
+        const emojis = data.emojis || [];
+        setEmojiList(emojis);
+        
+        const maxPages = Math.ceil(emojis.length / pageSize);
+        allEmojisRef.current = [];
+        
+        for (let i = 0; i < maxPages; i++) {
+          const start = i * pageSize;
+          const end = start + pageSize;
+          // Pre-process emojis if they need conversion from unicode codes
+          const pageEmojis = emojis.slice(start, end).map(emoji => {
+            // If emoji is a unicode code point (like "1F600"), convert it
+            if (typeof emoji === 'string' && emoji.match(/^[0-9A-F]+$/i)) {
+              return String.fromCodePoint(parseInt(emoji, 16));
+            }
+            return emoji;
+          });
+          allEmojisRef.current[i] = pageEmojis;
+        }
+
+      } catch (error) {
+        console.error("Error loading emojis:", error);
+      }
+    };
+    fetchEmojis();
+  }, []);
+
+  
+
+  const getEmojiPage = () => {
+    return allEmojisRef.current[page] || [];
+  };
+
+  const onNextEmojiPage = () => {
+    const end = emojiList.length / pageSize
+    setPage(prev => {
+      console.log((end))
+      if (prev + 1 > end)
+      {
+        return prev;
+      }
+      else
+      {
+        return prev + 1
+      }
+      
+    });
+  }
+
+  const onPrevEmojiPage = () => {
+    setPage(prev => {
+      if (prev === 0)
+      {
+        return 0;
+      }
+      else{
+        return prev -1;
+      }
+      
+    });
+  }
+
+  const onGoToEmojiPage = (number) => {
+    setPage(number);
+  }
+
 
   const send = () => {
     const ws = BackendConnection.current;
@@ -160,6 +243,19 @@ useEffect(() => {
       setText("");
     }
   };
+
+  const OpenEmojiDrawer = () => {
+
+    setIsEmojiDrawerOpen(prev => {
+      if (prev)
+      {
+        return false;
+      }
+      else{
+        return true;
+      }
+    });
+  }
 
 return (
   <>
@@ -171,6 +267,13 @@ return (
     >
       <span />   {/* the icon bars are drawn in CSS */}
     </button>
+
+    <div className="footer-buttons">
+          <button onClick={DeinitializeBackend}>LogOut</button>
+          <span>
+            <p>You're Logged in As:</p>{userData.name}
+          </span>
+    </div>
 
     {/* ▸ wrapper keeps chat centred; `show-sidebar` slides the drawer in */}
     <div className={`ChatWithSidebar ${sidebarOpen ? "show-sidebar" : ""}`}>
@@ -202,13 +305,27 @@ return (
             }}
           />
           <button onClick={send}>Send</button>
-        </div>
-
-        <div className="footer-buttons">
-          <button onClick={DeinitializeBackend}>LogOut</button>
+          <button onClick={OpenEmojiDrawer}>😀</button>
         </div>
       </div>
     </div>
+    {isEmojiDrawerOpen && (
+       <div className={`emoji-drawer ${isEmojiDrawerOpen ? "open" : ""}`}>
+      <EmojiDrawer
+        isOpen={isEmojiDrawerOpen}
+        onEmojiSelect={(emoji) => {
+          setText((prev) => prev + emoji);
+          resizeTextarea();
+        }}
+        slicedEmojiList={getEmojiPage()}
+        onNext={onNextEmojiPage}
+        OnPrevious={onPrevEmojiPage}
+        currentPage={page}
+        maxPages = {emojiList.length / pageSize}
+        onSpecific={onGoToEmojiPage}
+      />
+      </div>
+      )}
   </>
 );
 }
