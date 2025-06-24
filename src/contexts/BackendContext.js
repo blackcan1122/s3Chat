@@ -99,7 +99,6 @@ export function BackendProvider({children}){
       const username = getCookie('username');
       const sessionid = getCookie('sessionId');
       const keepLogin = getCookie('AutoLogin');
-      console.log(`username: ${username}, sessionid: ${sessionid}, connected: ${connected}, keeplogin: ${keepLogin}`);
 
       const autoLogin = async () =>{
          try{

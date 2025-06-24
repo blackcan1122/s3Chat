@@ -15,6 +15,9 @@ export default function ChatApp() {
   const [isEmojiDrawerOpen, setIsEmojiDrawerOpen] = useState(false);
   const allEmojisRef = useRef([]);
 
+  // older msg
+  const [oldMessages, setOldMessages] = useState([]);
+
 
   // Emojis
 
@@ -64,8 +67,6 @@ export default function ChatApp() {
 
 
       */
-      console.log(`Received message: ${evt.data}`);
-
       let msg;
       try {
         msg = JSON.parse(evt.data);
@@ -78,13 +79,13 @@ export default function ChatApp() {
         let formattedMessage = `${msg.username}: ${msg.data}`;
         setMessages(prev => {
           if (document.hidden) {
+            playNotificationSound();
             setUnreadCount(prevCount => prevCount + 1);
           }
           return [...prev, formattedMessage];
         });
       }
       else if (msg.type == "cmd") {
-        console.log("Command received:", msg.data);
         if (msg.data === "rejected") {
           alert("You have been kicked from the chat.");
           DeinitializeBackend();
@@ -93,7 +94,6 @@ export default function ChatApp() {
       }
 
       else if (msg.type == "cmd") {
-        console.log("Command received:", msg.data);
         if (msg.data === "logout") {
           alert("You have been logged out.");
           DeinitializeBackend();
@@ -192,6 +192,7 @@ export default function ChatApp() {
         console.error("Error loading emojis:", error);
       }
     };
+    load_old_msg();
     fetchEmojis();
   }, []);
 
@@ -204,7 +205,6 @@ export default function ChatApp() {
   const onNextEmojiPage = () => {
     const end = emojiList.length / pageSize
     setPage(prev => {
-      console.log((end))
       if (prev + 1 > end)
       {
         return prev;
@@ -232,6 +232,36 @@ export default function ChatApp() {
 
   const onGoToEmojiPage = (number) => {
     setPage(number);
+  }
+
+  const load_old_msg = () => {
+    async function get_old_msg() {
+      const response = await fetch('/api/get_old_msg', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
+      },
+      body: JSON.stringify({ oldest_message: oldMessages[0] })
+      });
+
+      if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setOldMessages(prev => [...data, ...prev]);
+      }
+      } else {
+      console.error("Failed to fetch old messages");
+      }
+    }
+
+    get_old_msg();
+    
+  }
+
+  function playNotificationSound() {
+    const audio = new Audio(`/audio/noti.mp3`);
+    audio.play();
   }
 
 
@@ -281,7 +311,11 @@ return (
 
       {/* Chat history */}
       <div className="ChatWindow" ref={chatWindowRef}>
+        <button onClick={load_old_msg}>show more</button>
         <ul>
+          {oldMessages.map((m, i) => (
+            <li key={i}>{m}</li>
+          ))}
           {messages.map((m, i) => (
             <li key={i}>{m}</li>
           ))}
