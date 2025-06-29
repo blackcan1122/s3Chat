@@ -4,13 +4,14 @@ import { useUserData } from "../contexts/userContext";
 
 
 
-
-function Friendlist(){
+function Friendlist({onSelectCallback}){
     const { BackendConnection } = useBackend();
     const [userList, setUserList] = useState([]);
     const [error, setError] = useState(null);
     const [initialized, setInitialized] = useState(false)
     const {userData} = useUserData();
+    const [selectedIndex, setSelectedIndex] = useState(null);
+
 
     const fetchFriends = async () => {
         try {              
@@ -74,7 +75,15 @@ function Friendlist(){
 
     if (error) return <div>Error: {error}</div>;
 
-    const approval_state = (friend) => {
+    const onListClick = (friend, index) =>{
+        if (userData.name == friend.username){
+            return;
+        }
+        onSelectCallback(friend.username)
+        setSelectedIndex(index);
+    };
+    
+    const admin_panel = (friend) => {
         if (userData.role === true) {
             return (
                 <>
@@ -163,12 +172,15 @@ function Friendlist(){
             <ul>
                 {userList.map((friend, index) => (
                     <li key={index}>
-                        <div className="List-Entry">
+                        <div
+                            onClick={() => onListClick(friend, index)}
+                            className={`List-Entry${index === selectedIndex ? ' selected' : ''}${friend.username === userData.name ? ' self' : ''}`}
+                        >
                             <span className="username">{friend.username} - </span>
                             <span className={`status ${friend.is_online ? 'online' : 'offline'}`}>
                                 {friend.is_online ? "Online" : "Offline"}
                             </span>
-                            {approval_state(friend)}
+                            {admin_panel(friend)}
                         </div>
                     </li>
                 ))}

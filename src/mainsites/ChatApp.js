@@ -18,6 +18,12 @@ export default function ChatApp() {
   // older msg
   const [oldMessages, setOldMessages] = useState([]);
 
+  // room states
+  const [currentRoom, setCurrentRoom] = useState(null);
+  const [isInRoom, setisInRoom] = useState(false);
+  const [etablishedRooms, setEtablishedRooms] = useState([])
+  const [selectedFriend, setSelectedFriend] = useState("");
+
 
   // Emojis
 
@@ -49,6 +55,7 @@ export default function ChatApp() {
 
   const { BackendConnection, connected, DeinitializeBackend } = useBackend();
 
+  // subscribe to receving a message event
   useEffect(() => {
     if (!connected) return;
 
@@ -75,14 +82,29 @@ export default function ChatApp() {
       return;
       }
 
+      /*
+        a message object from the frontend would look something like this:
+        message_data = {
+            "type": "message",
+            "data": {
+                "msg": "Hello, how are you?"
+            },
+            "from": "alice",           # sender's username
+            "room_id": 1,               # recipient's username or group id
+            "chat_type": "direct"      # or "group"
+        }
+
+      */
       if (msg.type == "message") {
-        let formattedMessage = `${msg.username}: ${msg.data}`;
         setMessages(prev => {
-          if (document.hidden) {
+          if (document.hidden || msg.room_id != currentRoom) {
             playNotificationSound();
             setUnreadCount(prevCount => prevCount + 1);
+            return[...prev];
           }
-          return [...prev, formattedMessage];
+          return (
+            [...prev, msg]
+          )
         });
       }
       else if (msg.type == "cmd") {
@@ -109,12 +131,14 @@ export default function ChatApp() {
     ws.addEventListener("message", handler);
 
     return () => ws.removeEventListener("message", handler);
-  }, [connected, BackendConnection]);
+  }, [connected, BackendConnection, currentRoom]);
 
+  // scroll to bottom when a new message arrives
     useEffect(() => {
-    scrollToBottom();
+      scrollToBottom();
   }, [messages]);
 
+  // sets title and stuff for inactivity
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -131,7 +155,7 @@ export default function ChatApp() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-
+  // updates unreadCount for inactivity
   useEffect(() => {
     if (unreadCount > 0 && document.hidden) {
       if (!blinkInterval.current) {
@@ -146,7 +170,7 @@ export default function ChatApp() {
     }
   }, [unreadCount]);
 
-
+  // timer effect for checking for inactivity
   useEffect(() => {
     const AutoLogOutTimer = setInterval(() => {
       if (connected) {
@@ -160,8 +184,6 @@ export default function ChatApp() {
     }, 60 * 1000);
     return () => clearInterval(AutoLogOutTimer);
   }, [userData.last_message_sent, connected]);
-
-
 
   useEffect(() => {
     const fetchEmojis = async () => {
@@ -196,7 +218,10 @@ export default function ChatApp() {
     fetchEmojis();
   }, []);
 
-  
+  useEffect(() => {
+    scrollToBottom();
+  }, [oldMessages])
+
 
   const getEmojiPage = () => {
     return allEmojisRef.current[page] || [];
@@ -215,7 +240,7 @@ export default function ChatApp() {
       }
       
     });
-  }
+  };
 
   const onPrevEmojiPage = () => {
     setPage(prev => {
@@ -228,11 +253,11 @@ export default function ChatApp() {
       }
       
     });
-  }
+  };
 
   const onGoToEmojiPage = (number) => {
     setPage(number);
-  }
+  };
 
   const load_old_msg = () => {
     async function get_old_msg() {
@@ -242,7 +267,7 @@ export default function ChatApp() {
         'Content-Type': 'application/json',
         'authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
       },
-      body: JSON.stringify({ oldest_message: oldMessages[0] })
+      body: JSON.stringify({ room_id: currentRoom ,oldest_message: oldMessages[0] })
       });
 
       if (response.ok) {
@@ -257,19 +282,28 @@ export default function ChatApp() {
 
     get_old_msg();
     
-  }
+  };
 
   function playNotificationSound() {
     const audio = new Audio(`/audio/noti.mp3`);
     audio.play();
-  }
+  };
 
 
   const send = () => {
     const ws = BackendConnection.current;
     if (ws?.readyState === WebSocket.OPEN && text.trim() !== "") {
       UpdateTime(Date.now());
-      ws.send(text);
+      const payload = {
+        type: "message",
+        data: {
+                  msg: text
+        },
+        from: userData.name, 
+        room_id: currentRoom,            
+        chat_type: "direct"   
+      } 
+      ws.send(JSON.stringify(payload));
       setText("");
     }
   };
@@ -285,7 +319,56 @@ export default function ChatApp() {
         return true;
       }
     });
+  };
+
+  const onNewFriendSelected = (selectedFriend) => {
+    setMessages([]);
+    setSelectedFriend(selectedFriend)
+    setisInRoom(true);
+    async function get_old_msg() {
+      const response = await fetch(`/api/get_room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
+        },
+        body: JSON.stringify({ 
+          user_a: userData.name,
+          user_b: selectedFriend
+        })
+      });
+
+      if (response.ok) {
+        const response_data = await response.json();
+        setCurrentRoom(response_data["room_id"]);
+        setEtablishedRooms(prev => {
+          return [...prev, { friend: selectedFriend, roomID: response_data }];
+        });
+        setOldMessages(response_data["old_messages"] || []);
+      } else {
+        console.error("Failed to fetch old messages");
+      }
+    }
+    get_old_msg();
+  };
+
+  function renderMessages() {
+  if (!isInRoom) {
+    return <li>Please select a chat to view messages.</li>;
   }
+
+  const allMsgs = [...oldMessages, ...messages];
+  
+  return allMsgs.map((m, i) => {
+    const msgObj = typeof m === "string" ? JSON.parse(m) : m;
+
+    return (
+      <li key={msgObj.id || `${msgObj.from || msgObj.username}-${i}`}>
+        <strong className="accent sender">{msgObj["from"]}<br /></strong> {typeof msgObj["data"] === "object" ? msgObj["data"].msg : msgObj["data"]}
+      </li>
+    );
+  });
+}
 
 return (
   <>
@@ -307,22 +390,17 @@ return (
 
     {/* ▸ wrapper keeps chat centred; `show-sidebar` slides the drawer in */}
     <div className={`ChatWithSidebar ${sidebarOpen ? "show-sidebar" : ""}`}>
-      <Friendlist />
-
+      <Friendlist onSelectCallback={onNewFriendSelected} />
+      <div className="Active-Chat">
+        <span>You Chat With: <strong className="accent sender">{selectedFriend}</strong></span>
+      </div>
       {/* Chat history */}
       <div className="ChatWindow" ref={chatWindowRef}>
         <button onClick={load_old_msg}>show more</button>
         <ul>
-          {oldMessages.map((m, i) => (
-            <li key={i}>{m}</li>
-          ))}
-          {messages.map((m, i) => (
-            <li key={i}>{m}</li>
-          ))}
+         {renderMessages()}
         </ul>
       </div>
-
-      {/* Sticky footer */}
       <div className="message-input-wrapper">
         <div className="input-row">
           <textarea

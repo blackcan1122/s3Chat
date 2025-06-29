@@ -119,6 +119,7 @@ function LoginPage() {
         <button type="submit">
           {isRegister ? "Create account" : "Login"}
         </button>
+        <span><strong className='accent' style={{ fontSize: "1rem" }}>Due to change in the message system, please register again</strong></span>
       </form>
     </>
   );

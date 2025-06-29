@@ -5,7 +5,7 @@
 :root {
   --bg: #1e1e2f;
   --bg-secondary: #2a2a40;
-  --accent: #d47100;
+  --accent: #eb7d00;
   --dim-accent: #864800;
   --accent-hover: #d4a200fb;
   --text-primary: #f5f5f7;
@@ -303,10 +303,32 @@ a:hover { opacity:0.85; text-decoration:underline; }
   border-radius: var(--radius);
   box-shadow: 0 0 5px 2px var(--bg);
   margin: 10px 0 10px 0;
-  padding: 10px
+  padding: 10px;
+  cursor: pointer;
 }
+
 .List-Entry:hover {
   box-shadow: 0 0 5px 0px var(--accent-hover);
+}
+
+.List-Entry.selected {
+  box-shadow:  0 0 10px 0px var(--accent);
+}
+
+.List-Entry.self {
+  cursor: initial;
+}
+
+.List-Entry.self:hover {
+  box-shadow: 0 0 0px 0px rgba(0, 0, 0, 0);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.sender {
+  font-size: 0.80rem;
 }
 
 /* friend list as a fixed drawer on narrow viewports */
