@@ -5,16 +5,18 @@ const AuthContext = createContext();
 
 export function UserProvider({children}){
   const [userData, setUserData] = useState({
-  name: "",
-  role: "",
-  last_message_sent: Date.now()
+    id: null,
+    name: "",
+    role: "",
+    last_message_sent: Date.now()
   });
 
-function SetupUser(name, role){
+function SetupUser(name, role, id){
     setUserData(prev => ({
         ...prev,
         name,
         role,
+        id,
         last_message_sent: Date.now()
     }));
 }

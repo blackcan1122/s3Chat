@@ -77,7 +77,8 @@ export function BackendProvider({children}){
                 BackendConnection.current = ws;
                 ws.onmessage = null;
                 const role = payload.role;
-                SetupUser(Name, role);
+                const id = payload.id;
+                SetupUser(Name, role, id);
                 document.cookie = `username=${Name}; path=/; max-age=${60 * 60}`;
                 document.cookie = `sessionId=${payload.session_id}; path=/; max-age=${60 * 60}`;
                 document.cookie = `AutoLogin=${SaveLogin}; path=/; max-age=${60 * 60}`;

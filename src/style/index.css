@@ -57,7 +57,7 @@ body {
   margin-inline: auto;
 }
 
-.ChatWithSidebar > .FriendList{
+.ChatWithSidebar > .sidebar{
   position: absolute;
   right: 100%;
   margin-right: var(--gap);
@@ -170,15 +170,55 @@ body {
 
 
 /* ================= Form Elements ================ */
-input,textarea,select {
-  width:100%;
-  padding:0.75rem 1rem;
+input, textarea, select, option {
+  width: 100%;
+  background-color: var(--bg-secondary);
+  padding: 0.75rem 1rem;
   border: 1px solid var(--dim-accent);
-  border-radius:var(--radius);
-  background:rgba(255,255,255,0.08);
-  color:var(--text-primary);
-  margin-bottom:1.25rem;
-  transition:background var(--transition);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  transition: background var(--transition);
+}
+
+/* Dark dropdown for select options (Webkit/Blink browsers) */
+select:focus {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.group_btn {
+  display: flex;
+  margin-top: 10px;
+  justify-self: center;
+}
+.select-box {
+  margin-top: 10px;
+}
+
+.smaller_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  margin: 0 auto;
+  border-radius: 12%;
+}
+
+.full-sized {
+  width: 100%;
+}
+
+/* Firefox-specific: darken dropdown */
+select:-moz-focusring {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 input:focus, textarea:focus, select:focus {
@@ -323,6 +363,49 @@ a:hover { opacity:0.85; text-decoration:underline; }
   box-shadow: 0 0 0px 0px rgba(0, 0, 0, 0);
 }
 
+.List-Entry.unread {
+  animation: blink-unread 1s ease-in-out infinite;
+}
+
+.amount-unread {
+  display: inline-block;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: #fff;
+  text-align: center;
+  line-height: 22px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  vertical-align: middle;
+  float: right;
+  margin-left: auto;
+}
+
+.expand {
+  display: block;
+}
+.expand::after{
+  z-index: 1000;
+  display: inline;
+  content: "▼";
+  cursor: pointer;
+}
+
+.Admin-Panel-Shown{
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+@keyframes blink-unread {
+  0%, 100% { background-color: var(--accent); }
+  50% { background-color: transparent; }
+}
+
 .accent {
   color: var(--accent);
 }
@@ -335,7 +418,7 @@ a:hover { opacity:0.85; text-decoration:underline; }
 @media (max-width:767px){
   .SidebarToggle{ display:flex; }
 
-  .ChatWithSidebar .FriendList{
+  .ChatWithSidebar .sidebar{
     position:fixed;          /* overlays page */
     top:45px; left:0; bottom:0;
     width:260px; max-width:80%;
@@ -351,7 +434,7 @@ a:hover { opacity:0.85; text-decoration:underline; }
 
 
   /* when clicked we fade it in */
-  .ChatWithSidebar.show-sidebar .FriendList{
+  .ChatWithSidebar.show-sidebar .sidebar{
     transform:translateX(0);
   }
 }
@@ -436,7 +519,7 @@ a:hover { opacity:0.85; text-decoration:underline; }
 
 /* show sidebar on larger screens */
 @media (min-width:768px){
-  .ChatWithSidebar .FriendList{
+  .ChatWithSidebar .sidebar{
     position:absolute;
     right:100%;
     margin-right:var(--gap);

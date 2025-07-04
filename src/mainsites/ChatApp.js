@@ -18,11 +18,14 @@ export default function ChatApp() {
   // older msg
   const [oldMessages, setOldMessages] = useState([]);
 
+  // unread messages
+  const [unreadFriends, setUnreadFriends] = useState([]);
+
   // room states
   const [currentRoom, setCurrentRoom] = useState(null);
   const [isInRoom, setisInRoom] = useState(false);
-  const [etablishedRooms, setEtablishedRooms] = useState([])
   const [selectedFriend, setSelectedFriend] = useState("");
+  const [isInGroupChat, setIsInGroupChat] = useState(false);
 
 
   // Emojis
@@ -97,13 +100,25 @@ export default function ChatApp() {
       */
       if (msg.type == "message") {
         setMessages(prev => {
-          if (document.hidden || msg.room_id != currentRoom) {
+          if (document.hidden) {
             playNotificationSound();
             setUnreadCount(prevCount => prevCount + 1);
-            return[...prev];
+          }
+
+          if (msg.room_id != currentRoom){
+            setUnreadFriends(prev => {
+              if (msg.type == 'direct'){
+                return [...prev, msg.from] // adding a new unread message
+              }
+              else
+              {
+                return [...prev, msg.room_name] // adding a new unread message
+              }
+            })
+            return[...prev]; // returning same msg array
           }
           return (
-            [...prev, msg]
+            [...prev, msg] // appending new message
           )
         });
       }
@@ -184,6 +199,11 @@ export default function ChatApp() {
     }, 60 * 1000);
     return () => clearInterval(AutoLogOutTimer);
   }, [userData.last_message_sent, connected]);
+
+  useEffect(() => {
+    console.log(`we load msg for ${currentRoom}`)
+    load_old_msg();
+  }, [currentRoom])
 
   useEffect(() => {
     const fetchEmojis = async () => {
@@ -300,8 +320,9 @@ export default function ChatApp() {
                   msg: text
         },
         from: userData.name, 
-        room_id: currentRoom,            
-        chat_type: "direct"   
+        room_id: currentRoom,
+        room_name: selectedFriend,            
+        chat_type: isInGroupChat ? 'group' : 'direct' 
       } 
       ws.send(JSON.stringify(payload));
       setText("");
@@ -320,12 +341,14 @@ export default function ChatApp() {
       }
     });
   };
-
-  const onNewFriendSelected = (selectedFriend) => {
+  /**
+   * @param {string} selectedFriend
+   * @param {Object} Group
+   */
+  const onNewFriendSelected = (selectedFriend, Group = null) => {
     setMessages([]);
-    setSelectedFriend(selectedFriend)
     setisInRoom(true);
-    async function get_old_msg() {
+    async function get_room_direct() {
       const response = await fetch(`/api/get_room`, {
         method: 'POST',
         headers: {
@@ -341,15 +364,54 @@ export default function ChatApp() {
       if (response.ok) {
         const response_data = await response.json();
         setCurrentRoom(response_data["room_id"]);
-        setEtablishedRooms(prev => {
-          return [...prev, { friend: selectedFriend, roomID: response_data }];
-        });
         setOldMessages(response_data["old_messages"] || []);
       } else {
         console.error("Failed to fetch old messages");
       }
     }
-    get_old_msg();
+
+    async function get_group_room(selectedgrp) {
+      const response = await fetch('/api/get_old_msg', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
+      },
+      body: JSON.stringify({ room_id: selectedgrp ,oldest_message: null })
+      });
+
+      if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setOldMessages(prev => [...data, ...prev]);
+      }
+      } else {
+      console.error("Failed to fetch old messages");
+      }
+    }
+
+    if (Group != null) {
+      console.log(Group);
+      setUnreadFriends(prev => {
+        return prev.filter(friend => friend !== Group.name);
+      });
+      setIsInGroupChat(true);
+      setSelectedFriend(Group.name)
+      setOldMessages([]);
+      if (currentRoom === Group.id){  // Check if we're re-selecting the same group
+        get_group_room(Group.id);
+      }
+      setCurrentRoom(Group.id);
+
+    }
+    else {
+      setUnreadFriends(prev => {
+        return prev.filter(friend => friend !== selectedFriend);
+      });
+      setIsInGroupChat(false);
+      setSelectedFriend(selectedFriend)
+      get_room_direct(); 
+    }
   };
 
   function renderMessages() {
@@ -390,7 +452,7 @@ return (
 
     {/* ▸ wrapper keeps chat centred; `show-sidebar` slides the drawer in */}
     <div className={`ChatWithSidebar ${sidebarOpen ? "show-sidebar" : ""}`}>
-      <Friendlist onSelectCallback={onNewFriendSelected} />
+      <Friendlist onSelectCallback={onNewFriendSelected} unreadFriends={unreadFriends} />
       <div className="Active-Chat">
         <span>You Chat With: <strong className="accent sender">{selectedFriend}</strong></span>
       </div>
