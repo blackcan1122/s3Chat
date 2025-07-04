@@ -69,6 +69,115 @@ body {
   padding: var(--gap);
 }
 
+.sidebar > .button-wrap{
+  position: relative;
+  top:0px;
+  height: 45px;
+  border-radius: var(--radius);
+  margin: -16px -16px 16px -16px;
+  display: block;
+  cursor: pointer;
+}
+
+.button-wrap > .left{
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border-radius: var(--radius);
+  background: var(--dim-accent);
+  clip-path: polygon(
+    0 0,
+    15% 0,
+    45% 100%,
+    0 100%
+  );
+  transition: clip-path 0.4s ease-in-out, background 0.3s;
+  overflow: hidden;
+}
+.button-wrap > .right{
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border-radius: var(--radius);
+  background: var(--dim-accent);
+  clip-path: polygon(
+    55% 0,
+    100% 0,
+    100% 100%,
+    85% 100%
+  );
+  transition: clip-path 0.4s ease-in-out, background 0.3s;
+  overflow: hidden;
+  
+}
+
+.button-wrap > .right.active{
+  background: var(--accent);
+  clip-path: polygon(
+    15% 0,
+    100% 0,
+    100% 100%,
+    45% 100%
+  );
+
+}
+
+.button-wrap > .left.active{
+  background: var(--accent);
+  clip-path: polygon(
+    0 0,
+    55% 0,
+    85% 100%,
+    0 100%
+  );
+}
+
+.group-menu-btn{
+  z-index: 200;
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+
+  font-family: monospace;
+  font-size: 28px;
+  color: #b0b0c3;
+  transition: color 0.4s cubic-bezier(0.4,0,0.2,1);
+  padding-right: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.right.active .group-menu-btn {
+  color: var(--bg);
+  transition: color 0.4s ease-in-out;
+
+}
+
+.friends-menu-btn{
+  padding-left: 10px;
+  font-family: monospace;
+  font-size: 28px;
+  color: #b0b0c3;
+  transition: color 0.4s cubic-bezier(0.4,0,0.2,1);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Style when inside .left.active */
+.left.active .friends-menu-btn {
+  color: var(--bg);
+  transition: color 0.4s ease-in-out;
+
+}
+
 .FriendList ul {
   list-style: none;
 }
@@ -117,6 +226,11 @@ body {
   color:var(--text-primary);
   word-break:break-word;
   animation:fadeInUp 0.4s ease both;
+}
+
+.gif-drawer{
+  max-height: 450px;
+  overflow-y: auto;
 }
 
 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }

@@ -5,6 +5,7 @@ import getCookie from "../contexts/BackendContext";
 import Friendlist from "../components/online_list";
 import { useUserData } from "../contexts/userContext";
 import EmojiDrawer from "../components/emoji_drawer";
+import GifDrawer from "../components/gif_drawer"
 
 export default function ChatApp() {
   const [messages, setMessages] = useState([]);
@@ -13,6 +14,7 @@ export default function ChatApp() {
   const [unreadCount, setUnreadCount] = useState(0);
   const {userData, UpdateTime} = useUserData();
   const [isEmojiDrawerOpen, setIsEmojiDrawerOpen] = useState(false);
+  const [isGifDrawerOpen, setIsGifDrawerOpen] = useState(false);
   const allEmojisRef = useRef([]);
 
   // older msg
@@ -99,6 +101,30 @@ export default function ChatApp() {
 
       */
       if (msg.type == "message") {
+        setMessages(prev => {
+          if (document.hidden) {
+            playNotificationSound();
+            setUnreadCount(prevCount => prevCount + 1);
+          }
+
+          if (msg.room_id != currentRoom){
+            setUnreadFriends(prev => {
+              if (msg.type == 'direct'){
+                return [...prev, msg.from] // adding a new unread message
+              }
+              else
+              {
+                return [...prev, msg.room_name] // adding a new unread message
+              }
+            })
+            return[...prev]; // returning same msg array
+          }
+          return (
+            [...prev, msg] // appending new message
+          )
+        });
+      }
+      else if (msg.type == "gif"){
         setMessages(prev => {
           if (document.hidden) {
             playNotificationSound();
@@ -329,8 +355,26 @@ export default function ChatApp() {
     }
   };
 
-  const OpenEmojiDrawer = () => {
+    const send_gif = (gifObject) => {
+    const ws = BackendConnection.current;
+    if (ws?.readyState === WebSocket.OPEN) {
+      UpdateTime(Date.now());
+      const payload = {
+        type: "gif",
+        data: {
+                  msg: gifObject
+        },
+        from: userData.name, 
+        room_id: currentRoom,
+        room_name: selectedFriend,            
+        chat_type: isInGroupChat ? 'group' : 'direct' 
+      } 
+      ws.send(JSON.stringify(payload));
+      setIsGifDrawerOpen(false);
+    }
+  };
 
+  const OpenEmojiDrawer = () => {
     setIsEmojiDrawerOpen(prev => {
       if (prev)
       {
@@ -341,6 +385,11 @@ export default function ChatApp() {
       }
     });
   };
+
+  const OpenGifDrawer = () => {
+    setIsGifDrawerOpen(prev => !prev);
+  };
+
   /**
    * @param {string} selectedFriend
    * @param {Object} Group
@@ -415,22 +464,36 @@ export default function ChatApp() {
   };
 
   function renderMessages() {
-  if (!isInRoom) {
-    return <li>Please select a chat to view messages.</li>;
+    if (!isInRoom) {
+      return <li>Please select a chat to view messages.</li>;
+    }
+
+    const allMsgs = [...oldMessages, ...messages];
+
+    return allMsgs.map((m, i) => {
+      const msgObj = typeof m === "string" ? JSON.parse(m) : m;
+
+      // Handle GIF messages
+      if (msgObj.type === "gif") {
+        // If msgObj.data.msg is a URL or object, adjust as needed
+        console.log(msgObj);
+        const gifUrl = typeof msgObj.data.msg === "string" ? msgObj.data.msg : msgObj.data.msg.media_formats.gif.url;
+        return (
+          <li key={msgObj.id || `${msgObj.from || msgObj.username}-gif-${i}`}>
+            <strong className="accent sender">{msgObj["from"]}<br /></strong>
+            <img src={gifUrl} alt="GIF" style={{ maxWidth: "200px", maxHeight: "200px" }} />
+          </li>
+        );
+      }
+
+      // Handle normal messages
+      return (
+        <li key={msgObj.id || `${msgObj.from || msgObj.username}-${i}`}>
+          <strong className="accent sender">{msgObj["from"]}<br /></strong> {typeof msgObj["data"] === "object" ? msgObj["data"].msg : msgObj["data"]}
+        </li>
+      );
+    });
   }
-
-  const allMsgs = [...oldMessages, ...messages];
-  
-  return allMsgs.map((m, i) => {
-    const msgObj = typeof m === "string" ? JSON.parse(m) : m;
-
-    return (
-      <li key={msgObj.id || `${msgObj.from || msgObj.username}-${i}`}>
-        <strong className="accent sender">{msgObj["from"]}<br /></strong> {typeof msgObj["data"] === "object" ? msgObj["data"].msg : msgObj["data"]}
-      </li>
-    );
-  });
-}
 
 return (
   <>
@@ -480,6 +543,8 @@ return (
           />
           <button onClick={send}>Send</button>
           <button onClick={OpenEmojiDrawer}>😀</button>
+          <button onClick={OpenGifDrawer}>Gifs</button>
+
         </div>
       </div>
     </div>
@@ -498,6 +563,11 @@ return (
         maxPages = {emojiList.length / pageSize}
         onSpecific={onGoToEmojiPage}
       />
+      </div>
+      )}
+       {isGifDrawerOpen && (
+       <div className={`emoji-drawer ${isEmojiDrawerOpen ? "open" : ""}`}>
+      <GifDrawer onGifClick={send_gif} />
       </div>
       )}
   </>

@@ -573,9 +573,8 @@ function Friendlist({ onSelectCallback, unreadFriends }) {
         )
     };
 
-    return (
-        <div className="sidebar">
-            <button className="full-sized" onClick={() => {
+    /*
+    <button className="full-sized" onClick={() => {
                 if (showGroups)
                 {
                     setShowGroups(false);
@@ -587,6 +586,16 @@ function Friendlist({ onSelectCallback, unreadFriends }) {
             }}>
                     {showGroups ? "Show Online Users" : "Show Groups"}
                 </button>
+    */
+
+    return (
+        <div className="sidebar">
+            <div className="button-wrap">
+                <div onClick={()=>{setShowGroups(false)}} className={`left${showGroups === false ? ' active' : ''}`}><span className="friends-menu-btn">Friends</span></div>
+                <div onClick={()=>{setShowGroups(true)}} className={`right${showGroups === true ? ' active' : ''}`}><span className="group-menu-btn">Groups</span></div>
+            </div>
+                
+                
                 {(() => {
                     if (showGroups === false){
                         return(
