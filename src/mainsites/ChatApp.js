@@ -227,7 +227,6 @@ export default function ChatApp() {
   }, [userData.last_message_sent, connected]);
 
   useEffect(() => {
-    console.log(`we load msg for ${currentRoom}`)
     load_old_msg();
   }, [currentRoom])
 
@@ -440,7 +439,6 @@ export default function ChatApp() {
     }
 
     if (Group != null) {
-      console.log(Group);
       setUnreadFriends(prev => {
         return prev.filter(friend => friend !== Group.name);
       });
@@ -475,8 +473,6 @@ export default function ChatApp() {
 
       // Handle GIF messages
       if (msgObj.type === "gif") {
-        // If msgObj.data.msg is a URL or object, adjust as needed
-        console.log(msgObj);
         const gifUrl = typeof msgObj.data.msg === "string" ? msgObj.data.msg : msgObj.data.msg.media_formats.gif.url;
         return (
           <li key={msgObj.id || `${msgObj.from || msgObj.username}-gif-${i}`}>

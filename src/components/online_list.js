@@ -170,7 +170,6 @@ function Friendlist({ onSelectCallback, unreadFriends }) {
         if (userData.name == friend.username){
             return;
         }
-        console.log(friend.username);
         onSelectCallback(friend.username)
         setSelectedIndex(index);
     };
@@ -373,8 +372,8 @@ function Friendlist({ onSelectCallback, unreadFriends }) {
     const CreateGroup = () => {
 
         const create = async () =>{
-            if (!createGrpName || createGrpName.length === 0 || createGrpName.length > 16){
-                alert("Something went wrong")
+            if (!createGrpName || createGrpName.length === 0 || createGrpName.length > 24){
+                alert("Group Name either empty or Too Long")
                 return;
             }
 
@@ -494,7 +493,6 @@ function Friendlist({ onSelectCallback, unreadFriends }) {
 
     const createUnreadMsg = (username) =>{
         let amount = amountUnread(username);
-        console.log(amount)
         if (amount > 0){
             return(
                 <div className="amount-unread">

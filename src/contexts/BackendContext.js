@@ -34,6 +34,10 @@ export function BackendProvider({children}){
             if (payload.state === "AUTH_SUCCESS") {
                 setConnected(true);
                 BackendConnection.current = ws;
+                const role = payload.role;
+                const id = payload.id;
+                SetupUser(Username, role, id);
+
                 ws.onmessage = null;
                 resolve(); // Success!
             } else {
