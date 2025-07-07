@@ -4,7 +4,7 @@ import { useUserData } from "../contexts/userContext";
 
 
 
-function Friendlist({ onSelectCallback, unreadFriends }) {
+function Friendlist({ onSelectCallback, unreadFriends, onSwitchCallback }) {
     const { BackendConnection } = useBackend();
     const [userList, setUserList] = useState([]);
     const [groups, SetGroups] = useState([]);
@@ -589,8 +589,8 @@ function Friendlist({ onSelectCallback, unreadFriends }) {
     return (
         <div className="sidebar">
             <div className="button-wrap">
-                <div onClick={()=>{setShowGroups(false)}} className={`left${showGroups === false ? ' active' : ''}`}><span className="friends-menu-btn">Friends</span></div>
-                <div onClick={()=>{setShowGroups(true)}} className={`right${showGroups === true ? ' active' : ''}`}><span className="group-menu-btn">Groups</span></div>
+                <div onClick={()=>{setShowGroups(false);onSwitchCallback()}} className={`left${showGroups === false ? ' active' : ''}`}><span className="friends-menu-btn">Friends</span></div>
+                <div onClick={()=>{setShowGroups(true);onSwitchCallback()}} className={`right${showGroups === true ? ' active' : ''}`}><span className="group-menu-btn">Groups</span></div>
             </div>
                 
                 

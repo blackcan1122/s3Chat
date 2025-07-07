@@ -19,6 +19,7 @@ export function BackendProvider({children}){
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState("");
     const { SetupUser } = useUserData();
+    const [unreadWhileOffline, setUnreadWhileOffline] = useState([])
  
 
     function InitializeBackendWithSession(Username ,SessionID){
@@ -36,6 +37,7 @@ export function BackendProvider({children}){
                 BackendConnection.current = ws;
                 const role = payload.role;
                 const id = payload.id;
+                setUnreadWhileOffline(payload.unread)
                 SetupUser(Username, role, id);
 
                 ws.onmessage = null;
@@ -83,6 +85,7 @@ export function BackendProvider({children}){
                 const role = payload.role;
                 const id = payload.id;
                 SetupUser(Name, role, id);
+                setUnreadWhileOffline([...payload.unread]);
                 document.cookie = `username=${Name}; path=/; max-age=${60 * 60}`;
                 document.cookie = `sessionId=${payload.session_id}; path=/; max-age=${60 * 60}`;
                 document.cookie = `AutoLogin=${SaveLogin}; path=/; max-age=${60 * 60}`;
@@ -122,7 +125,7 @@ export function BackendProvider({children}){
     }, [connected]);
 
     return (
-    <AuthContext.Provider value={{ BackendConnection, InitializeBackend, connected, DeinitializeBackend }}>
+    <AuthContext.Provider value={{ BackendConnection, InitializeBackend, connected, DeinitializeBackend, unreadWhileOffline, setUnreadWhileOffline }}>
       {children}
     </AuthContext.Provider>
   );

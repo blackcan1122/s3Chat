@@ -55,10 +55,16 @@ export default function ChatApp() {
     }
   };
 
+    const scrollToTop = () => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = 0;
+    }
+  };
+
   useEffect(resizeTextarea, [text]);
 
 
-  const { BackendConnection, connected, DeinitializeBackend } = useBackend();
+  const { BackendConnection, connected, DeinitializeBackend, unreadWhileOffline, setUnreadWhileOffline } = useBackend();
 
   // subscribe to receving a message event
   useEffect(() => {
@@ -96,11 +102,12 @@ export default function ChatApp() {
             },
             "from": "alice",           # sender's username
             "room_id": 1,               # recipient's username or group id
-            "chat_type": "direct"      # or "group"
+            "type": "direct"      # or "group"
         }
 
       */
       if (msg.type == "message") {
+        console.log(msg)
         setMessages(prev => {
           if (document.hidden) {
             playNotificationSound();
@@ -109,7 +116,7 @@ export default function ChatApp() {
 
           if (msg.room_id != currentRoom){
             setUnreadFriends(prev => {
-              if (msg.type == 'direct'){
+              if (msg.chat_type == 'direct'){
                 return [...prev, msg.from] // adding a new unread message
               }
               else
@@ -133,7 +140,7 @@ export default function ChatApp() {
 
           if (msg.room_id != currentRoom){
             setUnreadFriends(prev => {
-              if (msg.type == 'direct'){
+              if (msg.chat_type == 'direct'){
                 return [...prev, msg.from] // adding a new unread message
               }
               else
@@ -170,6 +177,12 @@ export default function ChatApp() {
     };
 
     ws.addEventListener("message", handler);
+  if (unreadFriends.length === 0 && unreadWhileOffline.length > 0) {
+    console.log(unreadWhileOffline);
+    setUnreadFriends(unreadWhileOffline);
+    setUnreadWhileOffline([]);
+  }
+
 
     return () => ws.removeEventListener("message", handler);
   }, [connected, BackendConnection, currentRoom]);
@@ -264,7 +277,11 @@ export default function ChatApp() {
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
+    if (oldMessages.length > 10){
+      scrollToTop();
+      return;
+    }
+      scrollToBottom();
   }, [oldMessages])
 
 
@@ -312,7 +329,7 @@ export default function ChatApp() {
         'Content-Type': 'application/json',
         'authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
       },
-      body: JSON.stringify({ room_id: currentRoom ,oldest_message: oldMessages[0] })
+      body: JSON.stringify({requestor: userData.id, room_id: currentRoom ,oldest_message: oldMessages[0] })
       });
 
       if (response.ok) {
@@ -325,7 +342,9 @@ export default function ChatApp() {
       }
     }
 
-    get_old_msg();
+    if (currentRoom != null){
+      get_old_msg();
+    }
     
   };
 
@@ -372,6 +391,13 @@ export default function ChatApp() {
       setIsGifDrawerOpen(false);
     }
   };
+
+  const onSwitch = () => {
+    setCurrentRoom(null);
+    setisInRoom(false);
+    setIsInGroupChat(false);
+    setSelectedFriend("");
+  }
 
   const OpenEmojiDrawer = () => {
     setIsEmojiDrawerOpen(prev => {
@@ -425,7 +451,7 @@ export default function ChatApp() {
         'Content-Type': 'application/json',
         'authorization': `Bearer ${process.env.REACT_APP_API_TOKEN}`
       },
-      body: JSON.stringify({ room_id: selectedgrp ,oldest_message: null })
+      body: JSON.stringify({requestor: userData.id, room_id: selectedgrp ,oldest_message: null })
       });
 
       if (response.ok) {
@@ -473,7 +499,19 @@ export default function ChatApp() {
 
       // Handle GIF messages
       if (msgObj.type === "gif") {
-        const gifUrl = typeof msgObj.data.msg === "string" ? msgObj.data.msg : msgObj.data.msg.media_formats.gif.url;
+        let gifUrl = "";
+        // Giphy structure: gif.images.original.url
+        if (msgObj.data?.msg?.images?.original?.url) {
+          gifUrl = msgObj.data.msg.images.original.url;
+        }
+        // Tenor structure: gif.media_formats.gif.url
+        else if (msgObj.data?.msg?.media_formats?.gif?.url) {
+          gifUrl = msgObj.data.msg.media_formats.gif.url;
+        }
+        // Fallback: string url
+        else if (typeof msgObj.data?.msg === "string") {
+          gifUrl = msgObj.data.msg;
+        }
         return (
           <li key={msgObj.id || `${msgObj.from || msgObj.username}-gif-${i}`}>
             <strong className="accent sender">{msgObj["from"]}<br /></strong>
@@ -511,7 +549,7 @@ return (
 
     {/* ▸ wrapper keeps chat centred; `show-sidebar` slides the drawer in */}
     <div className={`ChatWithSidebar ${sidebarOpen ? "show-sidebar" : ""}`}>
-      <Friendlist onSelectCallback={onNewFriendSelected} unreadFriends={unreadFriends} />
+      <Friendlist onSelectCallback={onNewFriendSelected} unreadFriends={unreadFriends} onSwitchCallback={onSwitch} />
       <div className="Active-Chat">
         <span>You Chat With: <strong className="accent sender">{selectedFriend}</strong></span>
       </div>
